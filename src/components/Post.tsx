@@ -3,9 +3,27 @@ import { format, formatDistanceToNow } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
 import { Comment } from './Comment';
 import { Avatar } from './Avatar';
-import { useState } from 'react';
+import { ChangeEvent, FormEvent, InvalidEvent, useState } from 'react';
 
-export function Post({ author, publishedAt, content }) {
+interface Author {
+  id: number;
+  name: string;
+  role: string;
+  avatarUrl: string;
+}
+
+interface Content {
+  type: 'paragraph' | 'link';
+  content: string;
+}
+
+type PostProps = {
+  author: Author;
+  publishedAt: Date;
+  content: Content[];
+};
+
+export function Post({ author, publishedAt, content }: PostProps) {
   // const publishedDateFormatted = new Intl.DateTimeFormat('pt-BR', {
   //   day: '2-digit',
   //   month: 'long',
@@ -30,30 +48,28 @@ export function Post({ author, publishedAt, content }) {
 
   const isNewCommentEmpty = newCommentText.length === 0;
 
-  function handleCreateNewComment() {
+  function handleCreateNewComment(event: FormEvent) {
     event.preventDefault();
-
-    const newCommentText = event.target.comment.value;
 
     setComments([...comments, newCommentText]);
     setNewCommentText('');
   }
 
-  function handleNewCommentChange() {
+  function handleNewCommentChange(event: ChangeEvent<HTMLTextAreaElement>) {
     event.target.setCustomValidity('');
     setNewCommentText(event.target.value);
   }
 
-  function deleteComment(commentToDelete) {
+  function handleNewCommentInvalid(event: InvalidEvent<HTMLTextAreaElement>) {
+    event.target.setCustomValidity('Este campo é obrigatório');
+  }
+
+  function deleteComment(commentToDelete: string) {
     const commentsWithoutDeletedOne = comments.filter((comment) => {
       return comment !== commentToDelete;
     });
 
     setComments(commentsWithoutDeletedOne);
-  }
-
-  function handleNewCommentInvalid(params) {
-    event.target.setCustomValidity('Este campo é obrigatório');
   }
 
   return (
@@ -94,8 +110,8 @@ export function Post({ author, publishedAt, content }) {
           <textarea
             name='comment'
             id=''
-            cols='30'
-            rows='10'
+            cols={30}
+            rows={10}
             value={newCommentText}
             onChange={handleNewCommentChange}
             onInvalid={handleNewCommentInvalid}
